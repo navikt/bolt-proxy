@@ -79,7 +79,7 @@ jobs:
           IMAGE: ${{ needs.build-inbound.outputs.image }}
 
   deploy-outbound:
-    name: Deploy outbound (${matrix.cluster})
+    name: Deploy outbound
     needs: build-outbound
     runs-on: ubuntu-latest
     permissions:

@@ -1,0 +1,18 @@
+version: 2
+multi-ecosystem-groups:
+  bolt-proxy:
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "bolt-proxy"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "bolt-proxy"
