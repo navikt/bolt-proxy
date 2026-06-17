@@ -19,6 +19,9 @@ spec:
     application:
       enabled: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: cartography-k8s
     outbound:
       external:
         - host: appsec-bolt-proxy.intern.nav.no
