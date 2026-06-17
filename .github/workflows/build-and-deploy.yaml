@@ -37,8 +37,8 @@ jobs:
         uses: nais/docker-build-push@05dbb6091b30bd84279c6d64a45ef8782fd410a5 # v0
         with:
           team: appsec
-          dockerfile: Dockerfile.outbound
           image_suffix: outbound
+          build_args: BINARY=outbound
 
   build-inbound:
     name: Build inbound image
@@ -57,8 +57,8 @@ jobs:
         uses: nais/docker-build-push@05dbb6091b30bd84279c6d64a45ef8782fd410a5 # v0
         with:
           team: appsec
-          dockerfile: Dockerfile.inbound
           image_suffix: inbound
+          build_args: BINARY=inbound
 
   deploy-inbound:
     name: Deploy inbound (prod-gcp)
