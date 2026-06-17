@@ -39,8 +39,6 @@ jobs:
           team: appsec
           image_suffix: outbound
           build_args: BINARY=outbound
-          cache_from: ""
-          cache_to: ""
 
   build-inbound:
     name: Build inbound image
@@ -61,8 +59,6 @@ jobs:
           team: appsec
           image_suffix: inbound
           build_args: BINARY=inbound
-          cache_from: ""
-          cache_to: ""
 
   deploy-inbound:
     name: Deploy inbound (prod-gcp)

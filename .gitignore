@@ -21,6 +21,5 @@ nb-configuration.xml
 # OS
 .DS_Store
 
-# Built dependencies
-inbound
-outbound
+# Build output
+bin/
