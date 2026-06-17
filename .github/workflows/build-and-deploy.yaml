@@ -1,0 +1,102 @@
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+      - name: Run tests
+        run: go test ./...
+
+  build-outbound:
+    name: Build outbound image
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Build and push outbound image
+        id: build
+        uses: nais/docker-build-push@05dbb6091b30bd84279c6d64a45ef8782fd410a5 # v0
+        with:
+          team: appsec
+          dockerfile: Dockerfile.outbound
+          docker_context: .
+          image_suffix: outbound
+
+  build-inbound:
+    name: Build inbound image
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Build and push inbound image
+        id: build
+        uses: nais/docker-build-push@05dbb6091b30bd84279c6d64a45ef8782fd410a5 # v0
+        with:
+          team: appsec
+          dockerfile: Dockerfile.inbound
+          docker_context: .
+          image_suffix: inbound
+
+  deploy-inbound:
+    name: Deploy inbound (prod-gcp)
+    needs: build-inbound
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Deploy inbound to prod-gcp
+        uses: nais/deploy/actions/deploy@5fdd91aaf69bb0d6dd5e5118cdacb639f487b93b # v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/inbound-prod-gcp.yaml
+          IMAGE: ${{ needs.build-inbound.outputs.image }}
+
+  deploy-outbound:
+    name: Deploy outbound (${matrix.cluster})
+    needs: build-outbound
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        include:
+          - cluster: dev-gcp
+          - cluster: dev-fss
+          - cluster: prod-fss
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Deploy outbound to ${{ matrix.cluster }}
+        uses: nais/deploy/actions/deploy@5fdd91aaf69bb0d6dd5e5118cdacb639f487b93b # v2
+        env:
+          CLUSTER: ${{ matrix.cluster }}
+          RESOURCE: .nais/outbound-${{ matrix.cluster }}.yaml
+          IMAGE: ${{ needs.build-outbound.outputs.image }}

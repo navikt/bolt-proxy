@@ -1,0 +1,66 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: bolt-proxy-outbound
+  namespace: appsec
+  labels:
+    team: appsec
+spec:
+  image: "{{image}}"
+  port: 8080
+  replicas:
+    min: 1
+    max: 1
+  strategy:
+    type: Recreate
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: appsec-bolt-proxy.intern.nav.no
+  env:
+    - name: INBOUND_WS_URL
+      value: "wss://appsec-bolt-proxy.intern.nav.no/ws"
+    - name: TOKEN_TARGET
+      value: "api://prod-gcp.appsec.bolt-proxy-inbound/.default"
+  liveness:
+    path: /isalive
+    initialDelay: 5
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /isready
+    initialDelay: 5
+    periodSeconds: 10
+    failureThreshold: 3
+  prometheus:
+    enabled: true
+    path: /metrics
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+---
+# Expose Bolt port (7687) so Cartography can use bolt://neo4j-bolt.appsec.svc.cluster.local
+# unchanged — same pattern as neo4j.yaml in appsec-cartography.
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-bolt
+  namespace: appsec
+  labels:
+    app: bolt-proxy-outbound
+    team: appsec
+spec:
+  selector:
+    app: bolt-proxy-outbound
+  ports:
+    - name: bolt
+      port: 7687
+      targetPort: 7687
+      protocol: TCP
+  type: ClusterIP
