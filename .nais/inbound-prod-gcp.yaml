@@ -30,6 +30,9 @@ spec:
         - application: bolt-proxy-outbound
           namespace: appsec
           cluster: prod-fss
+    outbound:
+      rules:
+        - application: neo4j
   env:
     - name: NEO4J_BOLT_ADDR
       value: "neo4j-bolt.appsec.svc.cluster.local:7687"
