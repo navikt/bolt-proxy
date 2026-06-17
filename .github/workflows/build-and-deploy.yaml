@@ -38,7 +38,6 @@ jobs:
         with:
           team: appsec
           dockerfile: Dockerfile.outbound
-          docker_context: .
           image_suffix: outbound
 
   build-inbound:
@@ -59,7 +58,6 @@ jobs:
         with:
           team: appsec
           dockerfile: Dockerfile.inbound
-          docker_context: .
           image_suffix: inbound
 
   deploy-inbound:
