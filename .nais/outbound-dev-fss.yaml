@@ -24,6 +24,10 @@ spec:
       rules:
         - application: cartography-k8s
     outbound:
+      rules:
+        - application: bolt-proxy-inbound
+          cluster: prod-gcp
+          namespace: appsec
       external:
         - host: appsec-bolt-proxy.intern.nav.no
   env:
